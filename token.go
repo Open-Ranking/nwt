@@ -35,7 +35,7 @@ type Token struct {
 	NotBefore  time.Time
 
 	// Additional custom claims.
-	Claims map[string][]string
+	Extra map[string][]string
 }
 
 func (t Token) String() string {
@@ -47,8 +47,8 @@ func (t Token) String() string {
 		"\tIssuedAt: %s\n"+
 		"\tExpiration: %s\n"+
 		"\tNotBefore: %s\n"+
-		"\tClaims: %v}",
-		t.ID, t.Issuer, t.Subject, t.Audience, t.IssuedAt, t.Expiration, t.NotBefore, t.Claims)
+		"\tExtra: %v}",
+		t.ID, t.Issuer, t.Subject, t.Audience, t.IssuedAt, t.Expiration, t.NotBefore, t.Extra)
 }
 
 // IsActive checks whether the token is currently active.
@@ -74,7 +74,7 @@ func (t Token) IsActiveAt(now time.Time, skew time.Duration) bool {
 
 // ToTags converts the Token into a list of nostr tags suitable for inclusion in a Nostr event.
 func (t Token) ToTags() nostr.Tags {
-	size := 2 + len(t.Audience) + len(t.Claims)
+	size := 2 + len(t.Audience) + len(t.Extra)
 	tags := make(nostr.Tags, 0, size)
 
 	if t.Issuer != "" {
@@ -102,7 +102,7 @@ func (t Token) ToTags() nostr.Tags {
 		tags = append(tags, nostr.Tag{ClaimNotBefore, strconv.FormatInt(t.NotBefore.Unix(), 10)})
 	}
 
-	for k, v := range t.Claims {
+	for k, v := range t.Extra {
 		tag := append(nostr.Tag{k}, v...)
 		tags = append(tags, tag)
 	}
@@ -172,11 +172,11 @@ func ParseToken(event *nostr.Event) (Token, error) {
 			}
 
 		default:
-			if token.Claims == nil {
-				token.Claims = make(map[string][]string)
+			if token.Extra == nil {
+				token.Extra = make(map[string][]string)
 			}
 
-			token.Claims[tag[0]] = tag[1:]
+			token.Extra[tag[0]] = tag[1:]
 		}
 	}
 	return token, nil

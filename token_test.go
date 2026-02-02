@@ -32,9 +32,7 @@ func TestToTags(t *testing.T) {
 		},
 		{
 			token: Token{
-				Claims: map[string][]string{
-					"role": {"admin"},
-				},
+				Extra: map[string][]string{"role": {"admin"}},
 			},
 			tags: nostr.Tags{
 				{"role", "admin"},
@@ -103,7 +101,7 @@ func TestParseToken(t *testing.T) {
 				IssuedAt:   time.Unix(420, 0).UTC(),
 				Expiration: MaxTime,
 				NotBefore:  MinTime,
-				Claims: map[string][]string{
+				Extra: map[string][]string{
 					"role":       {"admin"},
 					"permission": {"read", "write"},
 				},
