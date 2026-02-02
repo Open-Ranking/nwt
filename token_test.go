@@ -27,12 +27,13 @@ func TestToTags(t *testing.T) {
 			tags: nostr.Tags{
 				{"iss", "issuer"},
 				{"sub", "subject"},
-				{"aud", "aud1", "aud2"},
+				{"aud", "aud1"},
+				{"aud", "aud2"},
 			},
 		},
 		{
 			token: Token{
-				Extra: map[string][]string{"role": {"admin"}},
+				Extra: nostr.Tags{{"role", "admin"}},
 			},
 			tags: nostr.Tags{
 				{"role", "admin"},
@@ -70,7 +71,8 @@ func TestParseToken(t *testing.T) {
 				CreatedAt: nostr.Timestamp(420),
 				Tags: nostr.Tags{
 					{"sub", "subject"},
-					{"aud", "aud1", "aud2"},
+					{"aud", "aud1"},
+					{"aud", "aud2"},
 					{"exp", "6969"},
 				},
 			},
@@ -101,9 +103,9 @@ func TestParseToken(t *testing.T) {
 				IssuedAt:   time.Unix(420, 0).UTC(),
 				Expiration: MaxTime,
 				NotBefore:  MinTime,
-				Extra: map[string][]string{
-					"role":       {"admin"},
-					"permission": {"read", "write"},
+				Extra: nostr.Tags{
+					{"role", "admin"},
+					{"permission", "read", "write"},
 				},
 			},
 		},

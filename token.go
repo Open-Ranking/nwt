@@ -34,8 +34,8 @@ type Token struct {
 	Expiration time.Time
 	NotBefore  time.Time
 
-	// Additional custom claims.
-	Extra map[string][]string
+	// Additional custom claims, preserved as raw tags for roundtrip compatibility.
+	Extra nostr.Tags
 }
 
 func (t Token) String() string {
@@ -80,32 +80,22 @@ func (t Token) ToTags() nostr.Tags {
 	if t.Issuer != "" {
 		tags = append(tags, nostr.Tag{ClaimIssuer, t.Issuer})
 	}
-
 	if t.Subject != "" {
 		tags = append(tags, nostr.Tag{ClaimSubject, t.Subject})
 	}
-
-	if len(t.Audience) > 0 {
-		aud := append(nostr.Tag{ClaimAudience}, t.Audience...)
-		tags = append(tags, aud)
+	for _, audience := range t.Audience {
+		tags = append(tags, nostr.Tag{ClaimAudience, audience})
 	}
-
 	if !t.IssuedAt.IsZero() {
 		tags = append(tags, nostr.Tag{ClaimIssuedAt, strconv.FormatInt(t.IssuedAt.Unix(), 10)})
 	}
-
 	if !t.Expiration.IsZero() {
 		tags = append(tags, nostr.Tag{ClaimExpiration, strconv.FormatInt(t.Expiration.Unix(), 10)})
 	}
-
 	if !t.NotBefore.IsZero() {
 		tags = append(tags, nostr.Tag{ClaimNotBefore, strconv.FormatInt(t.NotBefore.Unix(), 10)})
 	}
-
-	for k, v := range t.Extra {
-		tag := append(nostr.Tag{k}, v...)
-		tags = append(tags, tag)
-	}
+	tags = append(tags, t.Extra...)
 	return tags
 }
 
@@ -121,7 +111,6 @@ func Parse(r *http.Request) (Token, error) {
 	if err := ValidateEvent(event); err != nil {
 		return Token{}, err
 	}
-
 	return ParseToken(event)
 }
 
@@ -151,7 +140,7 @@ func ParseToken(event *nostr.Event) (Token, error) {
 			token.Subject = tag[1]
 
 		case ClaimAudience:
-			token.Audience = append(token.Audience, tag[1:]...)
+			token.Audience = append(token.Audience, tag[1])
 
 		case ClaimIssuedAt:
 			token.IssuedAt, err = parseUnixTime(tag[1])
@@ -172,11 +161,7 @@ func ParseToken(event *nostr.Event) (Token, error) {
 			}
 
 		default:
-			if token.Extra == nil {
-				token.Extra = make(map[string][]string)
-			}
-
-			token.Extra[tag[0]] = tag[1:]
+			token.Extra = append(token.Extra, tag)
 		}
 	}
 	return token, nil
