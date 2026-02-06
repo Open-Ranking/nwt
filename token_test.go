@@ -78,6 +78,7 @@ func TestParseToken(t *testing.T) {
 			},
 			token: Token{
 				ID:         "id",
+				Signer:     "pubkey",
 				Issuer:     "pubkey",
 				Subject:    "subject",
 				Audience:   []string{"aud1", "aud2"},
@@ -98,6 +99,7 @@ func TestParseToken(t *testing.T) {
 			},
 			token: Token{
 				ID:         "id",
+				Signer:     "pubkey",
 				Issuer:     "pubkey",
 				Subject:    "pubkey",
 				IssuedAt:   time.Unix(420, 0).UTC(),

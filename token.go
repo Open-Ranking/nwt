@@ -26,7 +26,9 @@ const (
 // It includes registered claims as well as any additional claims found in the event tags.
 // Learn more about NWTs at: https://github.com/pippellia-btc/nostr-web-tokens
 type Token struct {
-	ID         string // The ID of the Nostr event
+	ID     string // The ID of the Nostr event
+	Signer string // The pubkey that signed the Nostr event
+
 	Issuer     string
 	Subject    string
 	Audience   []string
@@ -41,14 +43,15 @@ type Token struct {
 func (t Token) String() string {
 	return fmt.Sprintf("Token\n"+
 		"\tID: %s\n"+
+		"\tSigner: %s\n"+
 		"\tIssuer: %s\n"+
 		"\tSubject: %s\n"+
 		"\tAudience: %v\n"+
 		"\tIssuedAt: %s\n"+
 		"\tExpiration: %s\n"+
 		"\tNotBefore: %s\n"+
-		"\tExtra: %v}",
-		t.ID, t.Issuer, t.Subject, t.Audience, t.IssuedAt, t.Expiration, t.NotBefore, t.Extra)
+		"\tExtra: %v\n}",
+		t.ID, t.Signer, t.Issuer, t.Subject, t.Audience, t.IssuedAt, t.Expiration, t.NotBefore, t.Extra)
 }
 
 // IsActive checks whether the token is currently active.
@@ -120,6 +123,7 @@ func ParseToken(event *nostr.Event) (Token, error) {
 	var err error
 	token := Token{
 		ID:         event.ID,
+		Signer:     event.PubKey,
 		Issuer:     event.PubKey,
 		Subject:    event.PubKey,
 		IssuedAt:   event.CreatedAt.Time().UTC(),
