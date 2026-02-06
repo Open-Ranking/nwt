@@ -68,27 +68,21 @@ func ValidateEvent(e *nostr.Event) error {
 	if e == nil {
 		return errors.New("event is nil")
 	}
-
 	if e.Kind != Kind {
 		return ErrInvalidEventKind
 	}
-
 	if int64(e.CreatedAt) < MinTime.Unix() {
 		return fmt.Errorf("%w: created at cannot be negative", ErrInvalidEventCreatedAt)
 	}
-
 	if int64(e.CreatedAt) > MaxTime.Unix() {
 		return fmt.Errorf("%w: created at exceeds maximum time", ErrInvalidEventCreatedAt)
 	}
-
 	if len(e.Tags) > MaxClaims {
-		return errors.New("too many claims in event")
+		return errors.New("too many tags in event")
 	}
-
 	if !e.CheckID() {
 		return ErrInvalidEventID
 	}
-
 	match, err := e.CheckSignature()
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrInvalidEventSignature, err)

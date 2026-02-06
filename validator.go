@@ -31,7 +31,7 @@ var (
 // The token is considered valid iff Validate returns nil.
 //
 // Implementations may enforce different policies for what constitutes a valid token,
-// but are generally expected to at least validate the time-based claims with [ValidateTimeBounds].
+// but are generally expected to at least validate the time-based claims with [ValidateTimeClaims].
 //
 // As an example, check out [StrictValidator].
 type Validator interface {
@@ -51,16 +51,8 @@ func (v StrictValidator) Validate(t Token) error {
 		return ErrEmptyID
 	}
 
-	if err := ValidateTimeBounds(t); err != nil {
+	if err := ValidateTimeClaims(t, v.ClockSkew); err != nil {
 		return err
-	}
-
-	now := time.Now()
-	if now.Before(t.NotBefore.Add(-v.ClockSkew)) {
-		return ErrNotYetValid
-	}
-	if now.After(t.Expiration.Add(v.ClockSkew)) {
-		return ErrExpired
 	}
 
 	if len(t.Audience) > 0 {
@@ -71,22 +63,26 @@ func (v StrictValidator) Validate(t Token) error {
 	return nil
 }
 
-// ValidateTimeBounds checks that the Token's time-based claims are within valid bounds.
-func ValidateTimeBounds(t Token) error {
+// ValidateTimeClaims checks that the Token's time-based claims are within valid bounds.
+func ValidateTimeClaims(t Token, skew time.Duration) error {
 	if t.IssuedAt.Before(MinTime) || t.IssuedAt.After(MaxTime) {
 		return ErrInvalidIssuedAt
 	}
-
 	if t.Expiration.Before(MinTime) || t.Expiration.After(MaxTime) {
 		return ErrInvalidExpiration
 	}
-
 	if t.NotBefore.Before(MinTime) || t.NotBefore.After(MaxTime) {
 		return ErrInvalidNotBefore
 	}
-
 	if t.NotBefore.After(t.Expiration) {
 		return ErrInvalidTimeWindow
+	}
+	now := time.Now()
+	if now.Before(t.NotBefore.Add(-skew)) {
+		return ErrNotYetValid
+	}
+	if now.After(t.Expiration.Add(skew)) {
+		return ErrExpired
 	}
 	return nil
 }
