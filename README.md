@@ -1,6 +1,6 @@
 # nwt
 
-A golang library implementing [Nostr Web Tokens](https://github.com/pippellia-btc/nostr-web-tokens).
+A golang library implementing [Nostr Web Tokens](https://github.com/Open-Ranking/nostr-web-tokens).
 
 ## Installation
 
