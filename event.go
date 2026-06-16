@@ -29,6 +29,19 @@ var (
 	ErrInvalidEventSignature = errors.New("invalid event signature")
 )
 
+// SetAuth validates the Nostr event and sets the Authorization header on the request.
+func SetAuth(r *http.Request, event *nostr.Event) error {
+	if err := ValidateEvent(event); err != nil {
+		return err
+	}
+	b, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+	r.Header.Set("Authorization", "Nostr "+base64.RawURLEncoding.EncodeToString(b))
+	return nil
+}
+
 // ExtractEventHTTP extracts the Nostr event from the Authorization header
 // of the HTTP request without performing any validation.
 func ExtractEventHTTP(r *http.Request) (*nostr.Event, error) {

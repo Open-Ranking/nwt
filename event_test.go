@@ -61,6 +61,31 @@ func TestExtractEventHTTP(t *testing.T) {
 	}
 }
 
+func TestSetAuthRoundtrip(t *testing.T) {
+	event := &nostr.Event{
+		ID:        "366458cb01dd1f42d66cb71d31cc2e1217c69606181c83cbcdeb878942776d73",
+		PubKey:    "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+		CreatedAt: 1767957502,
+		Kind:      Kind,
+		Tags:      nostr.Tags{},
+		Sig:       "7c9a84e33fa7aaf6d85c3d90b3103b4197d7f964f5ff31dabe49aa4952b74579e4cfe6c4c4635e2501f5dbd742fdc4750a5ce26aae395a9b256a27b5533575b9",
+	}
+
+	r, _ := http.NewRequest(http.MethodGet, "/", nil)
+	if err := SetAuth(r, event); err != nil {
+		t.Fatalf("SetAuth failed: %v", err)
+	}
+
+	got, err := ExtractEventHTTP(r)
+	if err != nil {
+		t.Fatalf("ExtractEventHTTP failed: %v", err)
+	}
+
+	if !reflect.DeepEqual(got, event) {
+		t.Errorf("roundtrip mismatch:\nwant: %v\ngot:  %v", event, got)
+	}
+}
+
 func TestValidateEvent(t *testing.T) {
 	tests := []struct {
 		event *nostr.Event
