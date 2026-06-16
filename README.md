@@ -10,6 +10,14 @@ go get github.com/pippellia-btc/nwt
 
 ## Usage
 
+Setting the Authorization header of an `http.Request` from a Nostr event
+
+```golang
+if err := nwt.SetAuth(request, event); err != nil {
+    slog.Info("failed to set auth header", "error", err)
+}
+```
+
 Parsing a token from the Authorization header of an `http.Request`
 
 ```golang
